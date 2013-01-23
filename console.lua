@@ -6,7 +6,7 @@ local OUT = require 'love-console.output'
 local console = {}
 console.__index = console
 
-function new(font, width, height, spacing)
+function new(font, width, height, spacing, unfocus_cb)
 	local self = setmetatable({}, console)
 	self._out = OUT.new(font, width, height, spacing)
 	self._in  = IN.new()
@@ -22,6 +22,19 @@ function new(font, width, height, spacing)
 	self.prompt1 = "> "
 	self.prompt2 = "| "
 	self._prompt = self.prompt1
+	self.x = 0
+	self.y = -1
+	self.on_x = 0
+	self.on_y = height - 1
+	self.off_x = 0
+	self.off_y = -1
+	self.lerpVal = 0
+	self.lerpSpeed = 4
+	self.width = width
+	self.height = height
+	self.enabled = false
+
+	self.unfocus_callback = unfocus_cb or nil
 	return self
 end
 
@@ -52,11 +65,26 @@ function console:onCommand(cmd)
 	end
 end
 
-function console:draw(ox,oy)
-	assert(ox and oy)
+function console:update(dt)
+	if self.enabled then
+		if self.lerpVal < 1 then
+			self.lerpVal = self.lerpVal + self.lerpSpeed * dt
+			if self.lerpVal > 1 then self.lerpVal = 1 end
+		end
+	else
+		if self.lerpVal > 0 then
+			self.lerpVal = self.lerpVal - self.lerpSpeed * dt
+			if self.lerpVal < 0 then self.lerpVal = 0 end
+		end
+	end
+	self.x = self.off_x + (self.on_x - self.off_x) * self.lerpVal
+	self.y = self.off_y + (self.on_y - self.off_y) * self.lerpVal
+end
+
+function console:draw()
 	local inp = table.concat{self._prompt, self._in:current(), " "}
 	local n = self._out:push(inp)
-	self._out:draw(4, love.graphics.getHeight() - 4, self._in:pos())
+	self._out:draw(self.x, self.y, self._in:pos())
 	self._out:pop(n)
 end
 
@@ -69,12 +97,19 @@ function console:focus()
 	self._keypressed = love.keypressed
 	love.keypressed = function(...) self._in:keypressed(...) end
 	_current_focus = self
+
+	self.enabled = true
 end
 
 function console:unfocus()
 	love.keyboard.setKeyRepeat()
+	self.y = -1
 	love.keypressed = self._keypressed
 	_current_focus = nil
+
+	self.enabled = false
+
+	if self.unfocus_callback then self.unfocus_callback() end
 end
 
 function console:keypressed(...)

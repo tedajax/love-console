@@ -10,7 +10,7 @@ function new(...)
 end
 
 function output:reset(font, width, height, spacing)
-	self.font = font or love.graphics.getFont()
+	self.font = font or love.graphics.newFont("love-console/VeraMono.ttf", 12)
 	self.width = width or love.graphics.getWidth()
 	self.height = height or love.graphics.getHeight()
 	self.spacing = self.spacing or 4
@@ -27,29 +27,35 @@ function output:reset(font, width, height, spacing)
 	return self
 end
 
-function output:draw(ox,oy, cursor_pos)
-	assert(ox and oy)
+function output:draw(ox, oy, cursor_pos)
+	ox, oy = ox or 0, oy or 0
+
+	love.graphics.setColor(0, 0, 0, 127)
+	love.graphics.rectangle("fill", ox, oy - self.height, self.width, self.height)
+	love.graphics.setColor(0, 255, 0)
+	love.graphics.rectangle("line", ox, oy - self.height, self.width, self.height)
+
 	local current_font = love.graphics.getFont() or self.font
 	love.graphics.setFont(self.font)
-	local lines_to_display = self.lines_per_screen - math.floor((self.height - oy) / self.line_height)
+	local lines_to_display = self.lines_per_screen -- math.floor((self.height - oy) / self.line_height)
 	for i = #self.lines, math.max(1, #self.lines - lines_to_display), -1 do
-		love.graphics.print(self.lines[i], ox, oy - (#self.lines - i + 1) * self.line_height)
+		love.graphics.print(self.lines[i], ox + 2, oy - (#self.lines - i + 1) * self.line_height)
 	end
 	love.graphics.setFont(current_font)
 
 	if not cursor_pos then return end
 	local color = {love.graphics.getColor()}
-	love.graphics.setColor(color[1],color[2],color[3],color[4]/3)
+	love.graphics.setColor(color[1],color[2],color[3],255)
 
 	-- calculate cursor offsets
-	cursor_pos = self.font:getWidth(self.lines[#self.lines])
+	cursor_pos = self.lines[#self.lines]:len() + cursor_pos - 1
 	local char_offset = cursor_pos % self.chars_per_line
 	local line_offset = math.floor(cursor_pos / self.chars_per_line)
 
 	local cur = {}
 	cur.w = self.char_width + 1
 	cur.h = self.char_height + 1
-	cur.x = ox + cursor_pos
+	cur.x = ox + self.char_width * char_offset
 	cur.y = oy - cur.h + self.line_height * line_offset - 1
 	love.graphics.rectangle('fill', cur.x, cur.y, cur.w, cur.h)
 	love.graphics.setColor(unpack(color))
