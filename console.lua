@@ -1,7 +1,7 @@
 local print = print
 module(..., package.seeall)
-local IN  = require 'input'
-local OUT = require 'output'
+local IN  = require 'love-console.input'
+local OUT = require 'love-console.output'
 
 local console = {}
 console.__index = console
@@ -65,12 +65,14 @@ function console:focus()
 	if _current_focus then
 		_current_focus:unfocus()
 	end
+	love.keyboard.setKeyRepeat(0.5, 0.01)
 	self._keypressed = love.keypressed
 	love.keypressed = function(...) self._in:keypressed(...) end
 	_current_focus = self
 end
 
 function console:unfocus()
+	love.keyboard.setKeyRepeat()
 	love.keypressed = self._keypressed
 	_current_focus = nil
 end

@@ -42,14 +42,14 @@ function output:draw(ox,oy, cursor_pos)
 	love.graphics.setColor(color[1],color[2],color[3],color[4]/3)
 
 	-- calculate cursor offsets
-	cursor_pos = self.lines[#self.lines]:len() + cursor_pos - 1
+	cursor_pos = self.font:getWidth(self.lines[#self.lines])
 	local char_offset = cursor_pos % self.chars_per_line
 	local line_offset = math.floor(cursor_pos / self.chars_per_line)
 
 	local cur = {}
 	cur.w = self.char_width + 1
 	cur.h = self.char_height + 1
-	cur.x = ox + self.char_width * char_offset
+	cur.x = ox + cursor_pos
 	cur.y = oy - cur.h + self.line_height * line_offset - 1
 	love.graphics.rectangle('fill', cur.x, cur.y, cur.w, cur.h)
 	love.graphics.setColor(unpack(color))

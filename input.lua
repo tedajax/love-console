@@ -164,7 +164,7 @@ end
 
 function input:keypressed(key, code)
 	if key ~= 'tab' then self.complete_next = nil end
-	if key == 'escape' then
+	if key == 'escape' or key == '`' then
 		self:unfocus()
 		return
 	end
