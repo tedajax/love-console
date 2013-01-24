@@ -47,6 +47,10 @@ function console:print(...)
 	self._out:push(table.concat(s, "    "))
 end
 
+function console:clear()
+	self._out:clear()
+end
+
 function console:onCommand(cmd)
 	self._out:push(self._prompt, cmd)
 	cmd = cmd:gsub("^=%s?", "return "):gsub("^return%s+(.*)(%s*)$", "print(%1)%2")

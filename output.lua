@@ -78,6 +78,10 @@ function output:push(...)
 	return added
 end
 
+function output:clear()
+	self:pop(#self.lines)
+end
+
 function output:pop(n)
 	local n = n or 1
 	if n < 1 then return nil end
